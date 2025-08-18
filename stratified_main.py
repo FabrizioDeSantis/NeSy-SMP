@@ -4,7 +4,7 @@ import torch
 import numpy as np
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from torch.utils.data import DataLoader
-from model.models import LSTMModel, MLP, SimpleMLP
+from model.models import LSTMModel, MLP, SimpleMLP, SimpleMLPAge
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, confusion_matrix, roc_auc_score
 import statistics
 from collections import Counter
@@ -449,7 +449,7 @@ for i, (train_index, test_index) in enumerate(skf.split(X_all, y_all)):
     # Functions for checking lab values
 
     NoComorbidities = ltn.Function(func = lambda x: (x[:, -23:] == 0).all(axis=1))
-    # Predicates modeling risk factors
+    #Predicates modeling risk factors
     model_lactate = MLP(sequence_length, 64)
     LactateRisk = ltn.Predicate(model_lactate).to(device)
     model_albumin = MLP(sequence_length, 64)
@@ -458,6 +458,8 @@ for i, (train_index, test_index) in enumerate(skf.split(X_all, y_all)):
     CreatinineRisk = ltn.Predicate(model_creatinine).to(device)
     model_birulin = MLP(sequence_length, 64)
     HighBilirubin = ltn.Predicate(model_birulin).to(device)
+    model_crp = MLP(sequence_length, 64)
+    CRPRisk = ltn.Predicate(model_crp).to(device)
     model_platelet = MLP(sequence_length, 64)
     PlateletLow = ltn.Predicate(model_platelet).to(device)
     model_glucose = MLP(sequence_length, 64)
@@ -472,8 +474,14 @@ for i, (train_index, test_index) in enumerate(skf.split(X_all, y_all)):
     LactateNotClearing = ltn.Predicate(model_lactate_not_clearing).to(device)
     model_map = MLP(sequence_length, 64)
     MeanArterialPressureRisk = ltn.Predicate(model_map).to(device)
+    model_cronic_conditions = SimpleMLP(23, 64)
+    CronicConditionsRisk = ltn.Predicate(model_cronic_conditions).to(device)
+    model_wbc = MLP(sequence_length, 64)
+    WBCRisk = ltn.Predicate(model_wbc).to(device)
+    model_age = SimpleMLPAge(24, 64)
+    AgeRisk = ltn.Predicate(model_age).to(device)
 
-    params = list(P.parameters()) + list(LactateRisk.parameters()) + list(HighBilirubin.parameters()) + list(GlucoseRisk.parameters()) + list(RespiratoryRateRisk.parameters()) + list(ArterialBloodPressureSystolicRisk.parameters()) + list(GCSRisk.parameters()) + list(PlateletLow.parameters()) + list(LactateNotClearing.parameters()) + list(model_map.parameters())
+    params = list(P.parameters()) + list(LactateRisk.parameters()) + list(HighBilirubin.parameters()) + list(RespiratoryRateRisk.parameters()) + list(ArterialBloodPressureSystolicRisk.parameters()) + list(GCSRisk.parameters()) + list(PlateletLow.parameters()) + list(LactateNotClearing.parameters()) + list(CreatinineRisk.parameters()) + list(CRPRisk.parameters()) + list(CronicConditionsRisk.parameters()) + list(GlucoseRisk.parameters()) + list(WBCRisk.parameters()) + list(AgeRisk.parameters())
 
     optimizer = torch.optim.Adam(params, lr=config.learning_rate)
 
@@ -486,25 +494,31 @@ for i, (train_index, test_index) in enumerate(skf.split(X_all, y_all)):
     model_platelet.train()
     model_respiratory_rate.train()
     model_lactate_not_clearing.train()
+    model_cronic_conditions.train()
+    model_crp.train()
+    model_wbc.train()
 
     # Functions modeling risk factors
+    # Functions modeling risk factors
     lactate_above_threshold = lambda x: (x[:,(features_dict["Lactate"]*sequence_length-sequence_length):(features_dict["Lactate"]*sequence_length)] > scalers["Lactate"].transform(np.array([[4.0]]))[0][0]).any(axis=1)
-    glucose_above_threshold = lambda x: (x[:,(features_dict["Glucose"]*sequence_length-sequence_length):(features_dict["Glucose"]*sequence_length)] < scalers["Glucose"].transform(np.array([[70.0]]))[0][0]).any(axis=1)
+    age_above_threshold = lambda x: (x[:,(features_dict["anchor_age"]*sequence_length-sequence_length):(features_dict["anchor_age"]*sequence_length)][:, 0] > scalers["anchor_age"].transform(np.array([[65.0]]))[0][0])
+    glucose_above_threshold = lambda x: (x[:,(features_dict["Glucose"]*sequence_length-sequence_length):(features_dict["Glucose"]*sequence_length)] > scalers["Glucose"].transform(np.array([[100.0]]))[0][0]).any(axis=1)
     bloodpressuresystolic_below_threshold = lambda x: (x[:,(features_dict["Arterial Blood Pressure systolic"]*sequence_length-sequence_length):(features_dict["Arterial Blood Pressure systolic"]*sequence_length)] <= scalers["Arterial Blood Pressure systolic"].transform(np.array([[100.0]]))[0][0]).any(axis=1)
-    creatinine_above_threshold = lambda x: (x[:,(features_dict["Creatinine (serum)"]*sequence_length-sequence_length):(features_dict["Creatinine (serum)"]*sequence_length)] >= scalers["Creatinine (serum)"].transform(np.array([[3.5]]))[0][0]).any(axis=1)
+    creatinine_above_threshold = lambda x: (x[:,(features_dict["Creatinine (serum)"]*sequence_length-sequence_length):(features_dict["Creatinine (serum)"]*sequence_length)] >= scalers["Creatinine (serum)"].transform(np.array([[1.5]]))[0][0]).all(axis=1)
     respiratory_rate_risk = lambda x: (x[:,(features_dict["Respiratory Rate"]*sequence_length-sequence_length):(features_dict["Respiratory Rate"]*sequence_length)] >= scalers["Respiratory Rate"].transform(np.array([[29.0]]))[0][0]).all(axis=1) | (x[:,(features_dict["Respiratory Rate"]*sequence_length-sequence_length):(features_dict["Respiratory Rate"]*sequence_length)] < scalers["Respiratory Rate"].transform(np.array([[9.0]]))[0][0]).all(axis=1)
-    blood_pressure_systolic_risk = lambda x: (x[:,(features_dict["Arterial Blood Pressure systolic"]*sequence_length-sequence_length):(features_dict["Arterial Blood Pressure systolic"]*sequence_length)] <= scalers["Arterial Blood Pressure systolic"].transform(np.array([[71.0]]))[0][0]).any(axis=1) | (x[:,(features_dict["Arterial Blood Pressure systolic"]*sequence_length-sequence_length):(features_dict["Arterial Blood Pressure systolic"]*sequence_length)] >= scalers["Arterial Blood Pressure systolic"].transform(np.array([[200.0]]))[0][0]).all(axis=1)
+    blood_pressure_systolic_risk = lambda x: (x[:,(features_dict["Arterial Blood Pressure systolic"]*sequence_length-sequence_length):(features_dict["Arterial Blood Pressure systolic"]*sequence_length)] <= scalers["Arterial Blood Pressure systolic"].transform(np.array([[100.0]]))[0][0]).any(axis=1) & (x[:,(features_dict["Arterial Blood Pressure systolic"]*sequence_length-sequence_length):(features_dict["Arterial Blood Pressure systolic"]*sequence_length)] > scalers["Arterial Blood Pressure systolic"].transform(np.array([[0.0]]))[0][0]).all(axis=1)
+    blood_pressure_systolic_risk = lambda x: (x[:,(features_dict["Arterial Blood Pressure systolic"]*sequence_length-sequence_length):(features_dict["Arterial Blood Pressure systolic"]*sequence_length)] <= scalers["Arterial Blood Pressure systolic"].transform(np.array([[100.0]]))[0][0]).any(axis=1)
     bilirubin_above_threshold = lambda x: (x[:,(features_dict["Total Bilirubin"]*sequence_length-sequence_length):(features_dict["Total Bilirubin"]*sequence_length)] >= scalers["Total Bilirubin"].transform(np.array([[2.0]]))[0][0]).any(axis=1)
     low_gcs = lambda x: (x[:,(features_dict["gcs"]*sequence_length-sequence_length):(features_dict["gcs"]*sequence_length)] < scalers["gcs"].transform(np.array([[8.0]]))[0][0]).any(axis=1)
-    platelet_below_threshold = lambda x: (x[:,(features_dict["Platelet Count"]*sequence_length-sequence_length):(features_dict["Platelet Count"]*sequence_length)] < scalers["Platelet Count"].transform(np.array([[100.0]]))[0][0]).all(axis=1)
+    platelet_below_threshold = lambda x: (x[:,(features_dict["Platelet Count"]*sequence_length-sequence_length):(features_dict["Platelet Count"]*sequence_length)] < scalers["Platelet Count"].transform(np.array([[50.0]]))[0][0]).all(axis=1)
+    crp_above_threshold = lambda x: (x[:,(features_dict["C-Reactive Protein"]*sequence_length-sequence_length):(features_dict["C-Reactive Protein"]*sequence_length)] >= scalers["C-Reactive Protein"].transform(np.array([[100.0]]))[0][0]).any(axis=1)
     map_below_threshold = lambda x: (x[:,(features_dict["Arterial Blood Pressure mean"]*sequence_length-sequence_length):(features_dict["Arterial Blood Pressure mean"]*sequence_length)] < scalers["Arterial Blood Pressure mean"].transform(np.array([[65.0]]))[0][0]).any(axis=1)
-    # lactate_not_clearining = lambda x: (
-    #     (np.diff(x[:, (features_dict["Lactate"]*sequence_length-sequence_length):(features_dict["Lactate"]*sequence_length)].numpy(), axis=1) >= 0).all(axis=1) 
-    # )
     lactate_not_clearining = lambda x: np.array([
         (np.all(np.diff(seq[seq != 0]) >= 0) and np.any(seq > scalers["Lactate"].transform(np.array([[2.0]]))[0][0])) if np.sum(seq != 0) > 1 else False
         for seq in x[:, (features_dict["Lactate"]*sequence_length - sequence_length):(features_dict["Lactate"]*sequence_length)].numpy()
     ])
+    wbc_above_threshold = lambda x: (x[:,(features_dict["White Blood Cells"]*sequence_length-sequence_length):(features_dict["White Blood Cells"]*sequence_length)] > scalers["White Blood Cells"].transform(np.array([[30.0]]))[0][0]).any(axis=1)
+    has_cronic_condition = lambda x : (x[:, -23:][:, 0] == 1) | (x[:, -23:][:, 1] == 1) | (x[:, -23:][:, 3] == 1) | (x[:, -23:][:, 4] == 1) | (x[:, -23:][:, 6] == 1) | (x[:, -23:][:, 7] == 1)  | (x[:, -23:][:, 6] == 8)  | (x[:, -23:][:, 12] == 1)  | (x[:, -23:][:, 14] == 1) | (x[:, -23:][:, 18] == 1)
 
     w_data = 0.8
     w_knowledge = 0.2
@@ -515,9 +529,6 @@ for i, (train_index, test_index) in enumerate(skf.split(X_all, y_all)):
         sa_data = 0
         count = 0
         train_loss = 0.0
-        if epoch+1 > 20:
-            w_data = 0.8
-            w_knowledge = 0.2
         for enum, (x, y, c_id) in enumerate(train_loader):
             optimizer.zero_grad()
             x_D = ltn.Variable("x_D", x[y==1])
@@ -532,11 +543,15 @@ for i, (train_index, test_index) in enumerate(skf.split(X_all, y_all)):
             x_not_above_creatinine = ltn.Variable("x_not_above_creatinine", x[creatinine_above_threshold(x)==0])
             x_risk_respiratory_rate = ltn.Variable("x_risk_respiratory_rate", x[respiratory_rate_risk(x)==1])
             x_risk_pressure_systolic = ltn.Variable("x_risk_pressure_systolic", x[blood_pressure_systolic_risk(x)==1])
+            x_above_age = ltn.Variable("x_above_age", x[age_above_threshold(x)==1])
             x_below_platelet = ltn.Variable("x_below_platelet", x[platelet_below_threshold(x)==1])
             x_below_gcs = ltn.Variable("x_risk_gcs_low", x[low_gcs(x)==1])
             x_lactate_not_clear = ltn.Variable("x_lactate_not_clear", x[lactate_not_clearining(x)==1])
             x_lactate_clearing = ltn.Variable("x_lactate_clearing", x[lactate_not_clearining(x)==0])
             x_below_map = ltn.Variable("x_below_map", x[map_below_threshold(x)==1])
+            x_above_crp = ltn.Variable("x_above_crp", x[crp_above_threshold(x)==1])
+            x_cronic_condition = ltn.Variable("x_chronic_condition", x[has_cronic_condition(x)==1])
+            x_above_wbc = ltn.Variable("x_above_wbc", x[wbc_above_threshold(x)==1])
             formulas = []
             formulas_knowledge = []
             if x_D.value.numel()>0:
@@ -576,17 +591,39 @@ for i, (train_index, test_index) in enumerate(skf.split(X_all, y_all)):
                     Forall(x_risk_respiratory_rate, RespiratoryRateRisk(respiratory_rate(x_risk_respiratory_rate), comorbidities(x_risk_respiratory_rate), age(x_risk_respiratory_rate))).value,
                     Forall(x_risk_pressure_systolic, ArterialBloodPressureSystolicRisk(abps(x_risk_pressure_systolic), comorbidities(x_risk_pressure_systolic), age(x_risk_pressure_systolic))).value,
                 ])
-            if x_below_map.value.numel()>0:
+            if x_above_creatinine.value.numel()>0:
                 formulas_knowledge.extend([
-                    Forall(x_below_map, MeanArterialPressureRisk(mabp(x_below_map), comorbidities(x_below_map), age(x_below_map))).value,
+                    Forall(x_above_creatinine, CreatinineRisk(creatinine(x_above_creatinine), comorbidities(x_above_creatinine), age(x_above_creatinine))).value,
+                ])
+            if x_above_crp.value.numel()>0:
+                formulas_knowledge.extend([
+                    Forall(x_above_crp, CRPRisk(crp(x_above_crp), comorbidities(x_above_crp), age(x_above_crp))).value,
+                ])
+            if x_cronic_condition.value.numel()>0:
+                formulas_knowledge.extend([
+                    Forall(x_cronic_condition, CronicConditionsRisk(comorbidities(x_cronic_condition))).value,
+                ])
+            if x_above_glucose.value.numel()>0:
+                formulas_knowledge.extend([
+                    Forall(x_above_glucose, GlucoseRisk(glucose(x_above_glucose), comorbidities(x_above_glucose), age(x_above_glucose))).value,
+                ])
+            if x_above_wbc.value.numel()>0:
+                formulas_knowledge.extend([
+                    Forall(x_above_wbc, WBCRisk(wbc(x_above_wbc), comorbidities(x_above_wbc), age(x_above_wbc))).value,
+                ])
+            if x_above_age.value.numel()>0:
+                formulas_knowledge.extend([
+                    Forall(x_above_age, AgeRisk(age(x_above_age), comorbidities(x_above_age))).value,
                 ])
             formulas_knowledge.extend([
                 Forall(x_All, Implies(LactateRisk(lactate(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
                 Forall(x_All, Implies(HighBilirubin(bilirubin(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
-                Forall(x_All, Implies(GCSRisk(gcs(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
                 Forall(x_All, Implies(PlateletLow(platelet(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
                 Forall(x_All, Implies(LactateNotClearing(lactate(x_All)), P(x_All))).value,
-                Forall(x_All, Implies(And(RespiratoryRateRisk(respiratory_rate(x_All), comorbidities(x_All), age(x_All)), ArterialBloodPressureSystolicRisk(abps(x_All), comorbidities(x_All), age(x_All))), P(x_All))).value,
+                Forall(x_All, Implies(CRPRisk(crp(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
+                Forall(x_All, Implies(CronicConditionsRisk(comorbidities(x_All)), P(x_All))).value,
+                Forall(x_All, Implies(WBCRisk(wbc(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
+                Forall(x_All, Implies(AgeRisk(age(x_All), comorbidities(x_All)), P(x_All))).value,
             ])
             sat_agg = SatAgg(*formulas)
             if len(formulas_knowledge) > 0:
@@ -632,173 +669,6 @@ for i, (train_index, test_index) in enumerate(skf.split(X_all, y_all)):
 
     #####################################
 
-    lstm = LSTMModel(vocab_sizes, config, 1, feature_names)
-    P = ltn.Predicate(lstm).to(device)
-    lstm.train()
-
-    SatAgg = ltn.fuzzy_ops.SatAgg()
-
-    lactate = ltn.Function(func = lambda x: x[:,(features_dict["Lactate"]*sequence_length-sequence_length):(features_dict["Lactate"]*sequence_length)])
-    albumin = ltn.Function(func = lambda x: x[:,(features_dict["Albumin"]*sequence_length-sequence_length):(features_dict["Albumin"]*sequence_length)])
-    creatinine = ltn.Function(func = lambda x: x[:,(features_dict["Creatinine (serum)"]*sequence_length-sequence_length):(features_dict["Creatinine (serum)"]*sequence_length)])
-    bilirubin = ltn.Function(func = lambda x: x[:,(features_dict["Total Bilirubin"]*sequence_length-sequence_length):(features_dict["Total Bilirubin"]*sequence_length)])
-    glucose = ltn.Function(func = lambda x: x[:,(features_dict["Glucose"]*sequence_length-sequence_length):(features_dict["Glucose"]*sequence_length)])
-    age = ltn.Function(func = lambda x: x[:,(features_dict["anchor_age"]*sequence_length-sequence_length):(features_dict["anchor_age"]*sequence_length)][:, 0])
-    wbc = ltn.Function(func = lambda x: x[:,(features_dict["White Blood Cells"]*sequence_length-sequence_length):(features_dict["White Blood Cells"]*sequence_length)])
-    crp = ltn.Function(func = lambda x: x[:,(features_dict["C-Reactive Protein"]*sequence_length-sequence_length):(features_dict["C-Reactive Protein"]*sequence_length)])
-    comorbidities = ltn.Function(func = lambda x: x[:, -23:])
-
-    # mews score risk
-    abps = ltn.Function(func = lambda x: x[:,(features_dict["Arterial Blood Pressure systolic"]*sequence_length-sequence_length):(features_dict["Arterial Blood Pressure systolic"]*sequence_length)])
-    respiratory_rate = ltn.Function(func = lambda x: x[:,(features_dict["Respiratory Rate"]*sequence_length-sequence_length):(features_dict["Respiratory Rate"]*sequence_length)])
-    hear_rate = ltn.Function(func = lambda x: x[:,(features_dict["Heart Rate"]*sequence_length-sequence_length):(features_dict["Heart Rate"]*sequence_length)])
-
-    # Functions for checking comorbidities
-    HasCancer = ltn.Function(func = lambda x: x[:, -23:][:, 4])
-    IsImmunoCompromised = ltn.Function(func = lambda x: x[:, -23:][:, 1])
-    HasAKI = ltn.Function(func = lambda x: x[:, -23:][:, 0])
-    HasCAD = ltn.Function(func = lambda x: x[:, -23:][:, 3])
-    HasCOPD = ltn.Function(func = lambda x: x[:, -23:][:, 7])
-    HasDementia = ltn.Function(func = lambda x: x[:, -23:][:, 8])
-    HasDiabetesMellitus = ltn.Function(func = lambda x: x[:, -23:][:, 10])
-    HasHeartFailure = ltn.Function(func = lambda x: x[:, -23:][:, 11])
-    HasLeukemia = ltn.Function(func = lambda x: x[:, -23:][:, 16])
-    HasLymphoma = ltn.Function(func = lambda x: x[:, -23:][:, 17])
-    HasMetastaticCancer = ltn.Function(func = lambda x: x[:, -23:][:, 18])
-    # Functions for checking lab values
-
-    NoComorbidities = ltn.Function(func = lambda x: (x[:, -23:] == 0).all(axis=1))
-    # Predicates modeling risk factors
-    model_lactate = MLP(sequence_length, 64)
-    LactateRisk = ltn.Predicate(model_lactate).to(device)
-    model_albumin = MLP(sequence_length, 64)
-    AlbuminRisk = ltn.Predicate(model_albumin).to(device)
-    model_creatinine = MLP(sequence_length, 64)
-    CreatinineRisk = ltn.Predicate(model_creatinine).to(device)
-    model_birulin = MLP(sequence_length, 64)
-    HighBilirubin = ltn.Predicate(model_birulin).to(device)
-    # model_crp = MLP(sequence_length, 64)
-    # CRPRisk = ltn.Predicate(model_crp).to(device)
-    # model_wbc = MLP(sequence_length, 64)
-    # LowWBC = ltn.Predicate(model_wbc).to(device)
-    model_glucose = MLP(sequence_length, 64)
-    GlucoseRisk = ltn.Predicate(model_glucose).to(device)
-    model_respiratory_rate = MLP(sequence_length, 64)
-    RespiratoryRateRisk = ltn.Predicate(model_respiratory_rate).to(device)
-    model_abps = MLP(sequence_length, 64)
-    ArterialBloodPressureSystolicRisk = ltn.Predicate(model_abps).to(device)
-
-    params = list(P.parameters()) + list(LactateRisk.parameters()) + list(HighBilirubin.parameters()) + list(GlucoseRisk.parameters()) + list(CreatinineRisk.parameters()) + list(RespiratoryRateRisk.parameters()) + list(ArterialBloodPressureSystolicRisk.parameters())
-
-    optimizer = torch.optim.Adam(params, lr=config.learning_rate)
-
-    model_lactate.train()
-    model_albumin.train()
-    model_creatinine.train()
-    model_birulin.train()
-    model_glucose.train()
-
-    # Functions modeling risk factors
-    lactate_above_threshold = lambda x: (x[:,(features_dict["Lactate"]*sequence_length-sequence_length):(features_dict["Lactate"]*sequence_length)] > scalers["Lactate"].transform(np.array([[4.0]]))[0][0]).any(axis=1)# AlbuminRisk = ltn.Function(func = lambda x: (x[:,(features_dict["Albumin"]*sequence_length-sequence_length):(features_dict["Albumin"]*sequence_length)] < scalers["Albumin"].transform(np.array([[2.0]]))[0][0]).all(axis=1))
-    glucose_above_threshold = lambda x: (x[:,(features_dict["Glucose"]*sequence_length-sequence_length):(features_dict["Glucose"]*sequence_length)] < scalers["Glucose"].transform(np.array([[70.0]]))[0][0]).any(axis=1)
-    bloodpressuresystolic_below_threshold = lambda x: (x[:,(features_dict["Arterial Blood Pressure systolic"]*sequence_length-sequence_length):(features_dict["Arterial Blood Pressure systolic"]*sequence_length)] <= scalers["Arterial Blood Pressure systolic"].transform(np.array([[100.0]]))[0][0]).any(axis=1)
-    creatinine_above_threshold = lambda x: (x[:,(features_dict["Creatinine (serum)"]*sequence_length-sequence_length):(features_dict["Creatinine (serum)"]*sequence_length)] >= scalers["Creatinine (serum)"].transform(np.array([[3.5]]))[0][0]).any(axis=1)
-    respiratory_rate_risk = lambda x: (x[:,(features_dict["Respiratory Rate"]*sequence_length-sequence_length):(features_dict["Respiratory Rate"]*sequence_length)] >= scalers["Respiratory Rate"].transform(np.array([[29.0]]))[0][0]).any(axis=1) | (x[:,(features_dict["Respiratory Rate"]*sequence_length-sequence_length):(features_dict["Respiratory Rate"]*sequence_length)] < scalers["Respiratory Rate"].transform(np.array([[9.0]]))[0][0]).any(axis=1)
-    blood_pressure_systolic_risk = lambda x: (x[:,(features_dict["Arterial Blood Pressure systolic"]*sequence_length-sequence_length):(features_dict["Arterial Blood Pressure systolic"]*sequence_length)] <= scalers["Arterial Blood Pressure systolic"].transform(np.array([[71.0]]))[0][0]).any(axis=1) | (x[:,(features_dict["Arterial Blood Pressure systolic"]*sequence_length-sequence_length):(features_dict["Arterial Blood Pressure systolic"]*sequence_length)] >= scalers["Arterial Blood Pressure systolic"].transform(np.array([[200.0]]))[0][0]).any(axis=1)
-    # temperature_risk = lambda x: (x[:,(features_dict["Temperature Celsius"]*sequence_length-sequence_length):(features_dict["Temperature Celsius"]*sequence_length)] >= scalers["Temperature Celsius"].transform(np.array([[38.5]]))[0][0]).any(axis=1) | (x[:,(features_dict["Temperature Celsius"]*sequence_length-sequence_length):(features_dict["Temperature Celsius"]*sequence_length)] < scalers["Temperature Celsius"].transform(np.array([[35.0]]))[0][0]).any(axis=1)
-
-    best_f1_val = 0.0
-    count_early_stop = 0
-    for epoch in range(args.num_epochs_nesy):
-        train_loss = 0.0
-        for enum, (x, y, c_id) in enumerate(train_loader):
-            optimizer.zero_grad()
-            x_D = ltn.Variable("x_D", x[y==1])
-            x_not_D = ltn.Variable("x_not_D", x[y==0])
-            x_All = ltn.Variable("x_All", x)
-            lactate_above_th = lactate_above_threshold(x)
-            x_above_lactate = ltn.Variable("x_above_lactate", x[lactate_above_th==1])
-            x_above_glucose = ltn.Variable("x_above_glucose", x[glucose_above_threshold==1])
-            x_above_bilirubin = ltn.Variable("x_above_bilirubin", x[(x[:,(features_dict["Total Bilirubin"]*sequence_length-sequence_length):(features_dict["Total Bilirubin"]*sequence_length)] >= scalers["Total Bilirubin"].transform(np.array([[6.0]]))[0][0]).any(axis=1)])
-            x_above_creatinine = ltn.Variable("x_above_creatinine", x[(x[:,(features_dict["Creatinine (serum)"]*sequence_length-sequence_length):(features_dict["Creatinine (serum)"]*sequence_length)] >= scalers["Creatinine (serum)"].transform(np.array([[3.5]]))[0][0]).any(axis=1)])
-            x_risk_respiratory_rate = ltn.Variable("x_risk_respiratory_rate", x[respiratory_rate_risk(x)==1])
-            x_risk_pressure_systolic = ltn.Variable("x_risk_pressure_systolic", x[blood_pressure_systolic_risk(x)==1])
-            # x_risk_temperature = ltn.Variable("x_risk_temperature", x[temperature_risk(x)==1])
-            formulas = []
-            formulas_knowledge = []
-            if x_D.value.numel()>0:
-                formulas.extend([
-                    Forall(x_D, P(x_D)).value,
-                ])
-            if x_not_D.value.numel()>0:
-                formulas.extend([
-                    Forall(x_not_D, Not(P(x_not_D)), p=6).value,
-                ])
-            if x_above_lactate.value.numel()>0:
-                formulas.extend([
-                    Forall(x_above_lactate, LactateRisk(lactate(x_above_lactate), comorbidities(x_above_lactate), age(x_above_lactate))).value,
-                ])
-            if x_above_glucose.value.numel()>0:
-                formulas.extend([
-                    Forall(x_above_glucose, GlucoseRisk(glucose(x_above_glucose), comorbidities(x_above_glucose), age(x_above_glucose))).value,
-                ])
-            if x_above_bilirubin.value.numel()>0:
-                formulas.extend([
-                    Forall(x_above_bilirubin, HighBilirubin(bilirubin(x_above_bilirubin), comorbidities(x_above_bilirubin), age(x_above_bilirubin))).value,
-                ])
-            if x_above_creatinine.value.numel()>0:
-                formulas.extend([
-                    Forall(x_above_creatinine, CreatinineRisk(creatinine(x_above_creatinine), comorbidities(x_above_creatinine), age(x_above_creatinine))).value,
-                ])
-            if x_risk_respiratory_rate.value.numel()>0 and x_risk_pressure_systolic.value.numel()>0:
-                formulas.extend([
-                    Forall(x_risk_respiratory_rate, RespiratoryRateRisk(respiratory_rate(x_risk_respiratory_rate), comorbidities(x_risk_respiratory_rate), age(x_risk_respiratory_rate))).value,
-                    Forall(x_risk_pressure_systolic, ArterialBloodPressureSystolicRisk(abps(x_risk_pressure_systolic), comorbidities(x_risk_pressure_systolic), age(x_risk_pressure_systolic))).value,
-                ])
-            formulas.extend([
-                Forall(x_All, Implies(LactateRisk(lactate(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
-                Forall(x_All, Implies(GlucoseRisk(glucose(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
-                Forall(x_All, Implies(HighBilirubin(bilirubin(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
-                Forall(x_All, Implies(CreatinineRisk(creatinine(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
-                Forall(x_All, Implies(And(ArterialBloodPressureSystolicRisk(abps(x_All), comorbidities(x_All), age(x_All)), RespiratoryRateRisk(respiratory_rate(x_All), comorbidities(x_All), age(x_All))), P(x_All))).value,
-                Forall(x_All, Implies(Or(Not(ArterialBloodPressureSystolicRisk(abps(x_All), comorbidities(x_All), age(x_All))), Not(RespiratoryRateRisk(respiratory_rate(x_All), comorbidities(x_All), age(x_All)))), P(x_All))).value,
-            ])
-            sat_agg = SatAgg(*formulas)
-            loss = 1 - sat_agg
-            loss.backward()
-            optimizer.step()
-            train_loss += loss.item()
-            del x_D, x_not_D, sat_agg
-        train_loss = train_loss / len(train_loader)
-        f1_val = compute_accuracy(val_loader)
-        if f1_val > best_f1_val:
-            best_f1_val = f1_val
-            torch.save(lstm.state_dict(), "ltn_w_k_now.pth")
-            count_early_stop = 0
-        else:
-            count_early_stop += 1
-            if epoch >=10 and count_early_stop > 20:
-                print("Early stopping at epoch", epoch+1)
-                break
-
-        print(" epoch %d | loss %.4f | val f1 %.4f | test f1 %.4f" %(epoch+1, train_loss, f1_val, compute_accuracy(test_loader)))
-
-    lstm.load_state_dict(torch.load("ltn_w_k_now.pth"))
-    lstm.eval()
-
-    print("Metrics LTN w/ knowledge")
-    accuracy_ltn_w, f1score_ltn_w, precision_ltn_w, recall_ltn_w, roc_auc_ltn_w = compute_metrics(test_loader, lstm, device, "ltn_w_k_now", scalers, features_dict, sequence_length)
-    print("Accuracy:", accuracy_ltn_w)
-    ltn_now_accuracies.append(accuracy_ltn_w)
-    print("F1 Score:", f1score_ltn_w)
-    ltn_now_f1_scores.append(f1score_ltn_w)
-    print("Precision:", precision_ltn_w)
-    ltn_now_precisions.append(precision_ltn_w)
-    print("Recall:", recall_ltn_w)
-    ltn_now_recalls.append(recall_ltn_w)
-    print("ROC AUC:", roc_auc_ltn_w)
-    ltn_now_roc_aucs.append(roc_auc_ltn_w)
-
 # write mean and std of the metrics to a file
 with open("stratified_results.txt", "w") as f:
     f.write("LSTM Results:\n")
@@ -814,13 +684,6 @@ with open("stratified_results.txt", "w") as f:
     f.write(f"Precision: {np.mean(ltn_precisions):.4f} ± {np.std(ltn_precisions):.4f}\n")
     f.write(f"Recall: {np.mean(ltn_recalls):.4f} ± {np.std(ltn_recalls):.4f}\n")
     f.write(f"ROC AUC: {np.mean(ltn_roc_aucs):.4f} ± {np.std(ltn_roc_aucs):.4f}\n\n")
-
-    f.write("LTN Results without Weighted Knowledge:\n")
-    f.write(f"Accuracy: {np.mean(ltn_now_accuracies):.4f} ± {np.std(ltn_now_accuracies):.4f}\n")
-    f.write(f"F1 Score: {np.mean(ltn_now_f1_scores):.4f} ± {np.std(ltn_now_f1_scores):.4f}\n")
-    f.write(f"Precision: {np.mean(ltn_now_precisions):.4f} ± {np.std(ltn_now_precisions):.4f}\n")
-    f.write(f"Recall: {np.mean(ltn_now_recalls):.4f} ± {np.std(ltn_now_recalls):.4f}\n")
-    f.write(f"ROC AUC: {np.mean(ltn_now_roc_aucs):.4f} ± {np.std(ltn_now_roc_aucs):.4f}\n\n")
 
     f.write("LTN Results with Weighted Knowledge:\n")
     f.write(f"Accuracy: {np.mean(ltn_log_accuracies):.4f} ± {np.std(ltn_log_accuracies):.4f}\n")

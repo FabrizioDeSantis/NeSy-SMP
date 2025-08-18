@@ -520,15 +520,12 @@ blood_pressure_systolic_risk_values_before_training = np.concatenate(blood_press
 glucose_values_before_training = np.concatenate(glucose_values_before_training, axis=0)
 wbc_values_before_training = np.concatenate(wbc_values_before_training, axis=0)
 
-w_data = 0.7
-w_knowledge = 0.3
+w_data = 0.8
+w_knowledge = 0.2
 best_f1_val = 0.0
 count_early_stop = 0
 for epoch in range(args.num_epochs_nesy):
     train_loss = 0.0
-    if epoch+1 > 10:
-        w_data = 0.8
-        w_knowledge = 0.2
     for enum, (x, y, c_id) in enumerate(train_loader):
         optimizer.zero_grad()
         x_D = ltn.Variable("x_D", x[y==1])
@@ -618,12 +615,8 @@ for epoch in range(args.num_epochs_nesy):
         formulas_knowledge.extend([
             Forall(x_All, Implies(LactateRisk(lactate(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
             Forall(x_All, Implies(HighBilirubin(bilirubin(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
-            Forall(x_All, Implies(GCSRisk(gcs(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
-            Forall(x_All, Implies(GlucoseRisk(glucose(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
             Forall(x_All, Implies(PlateletLow(platelet(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
             Forall(x_All, Implies(LactateNotClearing(lactate(x_All)), P(x_All))).value,
-            Forall(x_All, Implies(And(RespiratoryRateRisk(respiratory_rate(x_All), comorbidities(x_All), age(x_All)), ArterialBloodPressureSystolicRisk(abps(x_All), comorbidities(x_All), age(x_All))), P(x_All))).value,
-            Forall(x_All, Implies(CreatinineRisk(creatinine(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
             Forall(x_All, Implies(CRPRisk(crp(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
             Forall(x_All, Implies(CronicConditionsRisk(comorbidities(x_All)), P(x_All))).value,
             Forall(x_All, Implies(WBCRisk(wbc(x_All), comorbidities(x_All), age(x_All)), P(x_All))).value,
