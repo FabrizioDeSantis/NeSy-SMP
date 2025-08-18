@@ -20,7 +20,7 @@ def get_events_before_death(group):
         death_time = death_event['time:timestamp'].iloc[0]
 
         # Calculate the start of the 6-hour window
-        start_time = death_time - pd.Timedelta(hours=12) # CAMBIA SOLO QUESTO
+        start_time = death_time - pd.Timedelta(hours=12) # MODIFY THE VALUE FOR THE PREDICTION WINDOW
     
         # Filter the group to get events within the 6-hour window
         group_to_filter_out = group[(group['time:timestamp'] >= start_time) & (group['time:timestamp'] <= death_time)]
