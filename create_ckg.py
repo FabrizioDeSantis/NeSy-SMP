@@ -39,27 +39,9 @@ g.add((CKG.hasAge, RDF.type, OWL.ObjectProperty))
 g.add((CKG.hasAge, RDFS.domain, SNOMED.Patient))
 g.add((CKG.hasAge, RDFS.range, SNOMED.Age))
 
-# g.add((CKG.hasCRP, RDF.type, OWL.ObjectProperty))
-# g.add((CKG.hasCRP, RDFS.domain, SNOMED.Patient))
-# g.add((CKG.hasCRP, RDFS.range, SNOMED.CReactiveProtein))
-
-# g.add((CKG.hasLactate, RDF.type, OWL.ObjectProperty))
-# g.add((CKG.hasLactate, RDFS.domain, SNOMED.Patient))
-# g.add((CKG.hasLactate, RDFS.range, SNOMED.Lactate))
-
 g.add((CKG.hasBMI, RDF.type, OWL.ObjectProperty))
 g.add((CKG.hasBMI, RDFS.domain, SNOMED.Patient))
 g.add((CKG.hasBMI, RDFS.range, SNOMED.BodyMassIndex))
-
-# g.add((SNOMED.Patient, SNOMED.has, SNOMED.Age))
-# g.add((SNOMED.Patient, SNOMED.has, SNOMED.CReactiveProtein))
-# g.add((SNOMED.Patient, SNOMED.has, SNOMED.Lactate))
-# g.add((SNOMED.Patient, SNOMED.has, SNOMED.BodyMassIndex))
-
-# Comorbidities
-# g.add((SNOMED.Patient, SNOMED.canHave, SNOMED.Cancer))
-# g.add((SNOMED.Patient, SNOMED.canHave, SNOMED.Pneumonia))
-# g.add((SNOMED.Patient, SNOMED.canHave, SNOMED.HIV))
 
 # RiskFactor for death
 # g.add((SCHEMA.riskFactor, RDF.type, OWL.Class))
@@ -78,11 +60,6 @@ g.add((SNOMED.LactateRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
 g.add((SNOMED.LactateRiskFactor, SCHEMA.propertyId, SNOMED.Lactate))
 g.add((SNOMED.LactateRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
 g.add((SNOMED.LactateRiskFactor, SCHEMA.greaterOrEqual, Literal(4, datatype=XSD.integer)))
-
-g.add((SNOMED.BodyMassIndexRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
-g.add((SNOMED.BodyMassIndexRiskFactor, SCHEMA.propertyId, SNOMED.BodyMassIndex))
-g.add((SNOMED.BodyMassIndexRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
-g.add((SNOMED.BodyMassIndexRiskFactor, SCHEMA.greaterOrEqual, Literal(24, datatype=XSD.integer)))
 
 g.add((SNOMED.WhiteBloodCellsRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
 g.add((SNOMED.WhiteBloodCellsRiskFactor, SCHEMA.propertyId, SNOMED.WhiteBloodCells))
