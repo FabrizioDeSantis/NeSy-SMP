@@ -43,6 +43,34 @@ g.add((CKG.hasBMI, RDF.type, OWL.ObjectProperty))
 g.add((CKG.hasBMI, RDFS.domain, SNOMED.Patient))
 g.add((CKG.hasBMI, RDFS.range, SNOMED.BodyMassIndex))
 
+g.add((CKG.hasMeanArterialPressure, RDF.type, OWL.ObjectProperty))
+g.add((CKG.hasMeanArterialPressure, RDFS.domain, SNOMED.Patient))
+g.add((CKG.hasMeanArterialPressure, RDFS.range, SNOMED.MeanArterialPressure))
+
+g.add((CKG.hasSystolicArterialPressure, RDF.type, OWL.ObjectProperty))
+g.add((CKG.hasSystolicArterialPressure, RDFS.domain, SNOMED.Patient))
+g.add((CKG.hasSystolicArterialPressure, RDFS.range, SNOMED.SystolicArterialPressure))
+
+g.add((CKG.hasDiastolicArterialPressure, RDF.type, OWL.ObjectProperty))
+g.add((CKG.hasDiastolicArterialPressure, RDFS.domain, SNOMED.Patient))
+g.add((CKG.hasDiastolicArterialPressure, RDFS.range, SNOMED.DiastolicArterialPressure))
+
+g.add((CKG.hasHeartRate, RDF.type, OWL.ObjectProperty))
+g.add((CKG.hasHeartRate, RDFS.domain, SNOMED.Patient))
+g.add((CKG.hasHeartRate, RDFS.range, SNOMED.HeartRate))
+
+g.add((CKG.hasRespiratoryRate, RDF.type, OWL.ObjectProperty))
+g.add((CKG.hasRespiratoryRate, RDFS.domain, SNOMED.Patient))
+g.add((CKG.hasRespiratoryRate, RDFS.range, SNOMED.RespiratoryRate))
+
+g.add((CKG.hasTemperature, RDF.type, OWL.ObjectProperty))
+g.add((CKG.hasTemperature, RDFS.domain, SNOMED.Patient))
+g.add((CKG.hasTemperature, RDFS.range, SNOMED.BodyTemperature))
+
+g.add((CKG.hasOxygenSaturation, RDF.type, OWL.ObjectProperty))
+g.add((CKG.hasOxygenSaturation, RDFS.domain, SNOMED.Patient))
+g.add((CKG.hasOxygenSaturation, RDFS.range, SNOMED.OxygenSaturation))
+
 # RiskFactor for death
 # g.add((SCHEMA.riskFactor, RDF.type, OWL.Class))
 g.add((SNOMED.AgeRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
@@ -104,6 +132,10 @@ g.add((SNOMED.KidneyDisease, SCHEMA.increaseRiskOf, SNOMED.Death))
 g.add((SNOMED.CardiacInsufficiency, RDFS.subClassOf, SCHEMA.riskFactor))
 g.add((SNOMED.CardiacInsufficiency, RDFS.subClassOf, SNOMED.Comorbidity))
 g.add((SNOMED.CardiacInsufficiency, SCHEMA.increaseRiskOf, SNOMED.Death))
+
+g.add((SNOMED.ChronicDisease, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.ChronicDisease, RDFS.subClassOf, SNOMED.Comorbidity))
+g.add((SNOMED.ChronicDisease, SCHEMA.increaseRiskOf, SNOMED.Death))
 
 g.add((SNOMED.SepticShock, RDFS.subClassOf, SCHEMA.riskFactor))
 g.add((SNOMED.SepticShock, SCHEMA.increaseRiskOf, SNOMED.Death))
