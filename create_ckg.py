@@ -77,17 +77,32 @@ g.add((SNOMED.CReactiveProteinRiskFactor, SCHEMA.greaterOrEqual, Literal(100, da
 g.add((SNOMED.LactateRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
 g.add((SNOMED.LactateRiskFactor, SCHEMA.propertyId, SNOMED.Lactate))
 g.add((SNOMED.LactateRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
-g.add((SNOMED.LactateRiskFactor, SCHEMA.greaterOrEqual, Literal(2, datatype=XSD.integer)))
+g.add((SNOMED.LactateRiskFactor, SCHEMA.greaterOrEqual, Literal(4, datatype=XSD.integer)))
 
 g.add((SNOMED.BodyMassIndexRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
 g.add((SNOMED.BodyMassIndexRiskFactor, SCHEMA.propertyId, SNOMED.BodyMassIndex))
 g.add((SNOMED.BodyMassIndexRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
 g.add((SNOMED.BodyMassIndexRiskFactor, SCHEMA.greaterOrEqual, Literal(24, datatype=XSD.integer)))
 
-g.add((SNOMED.AlbuminRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
-g.add((SNOMED.AlbuminRiskFactor, SCHEMA.propertyId, SNOMED.Albumin))
-g.add((SNOMED.AlbuminRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
-g.add((SNOMED.AlbuminRiskFactor, SCHEMA.lesser, Literal(3.5, datatype=XSD.integer)))
+g.add((SNOMED.WhiteBloodCellsRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.WhiteBloodCellsRiskFactor, SCHEMA.propertyId, SNOMED.WhiteBloodCells))
+g.add((SNOMED.WhiteBloodCellsRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
+g.add((SNOMED.WhiteBloodCellsRiskFactor, SCHEMA.greaterOrEqual, Literal(30, datatype=XSD.integer)))
+
+g.add((SNOMED.BilirubinRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.BilirubinRiskFactor, SCHEMA.propertyId, SNOMED.Bilirubin))
+g.add((SNOMED.BilirubinRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
+g.add((SNOMED.BilirubinRiskFactor, SCHEMA.greaterOrEqual, Literal(2, datatype=XSD.float)))
+
+g.add((SNOMED.PlateletRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.PlateletRiskFactor, SCHEMA.propertyId, SNOMED.Platelet))
+g.add((SNOMED.PlateletRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
+g.add((SNOMED.PlateletRiskFactor, SCHEMA.lessOrEqual, Literal(50, datatype=XSD.integer)))
+
+g.add((SNOMED.MeanArterialPressureRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.MeanArterialPressureRiskFactor, SCHEMA.propertyId, SNOMED.MeanArterialPressure))
+g.add((SNOMED.MeanArterialPressureRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
+g.add((SNOMED.MeanArterialPressureRiskFactor, SCHEMA.lessOrEqual, Literal(65, datatype=XSD.integer)))
 
 g.add((SNOMED.Cancer, RDFS.subClassOf, SCHEMA.riskFactor))
 g.add((SNOMED.Cancer, RDFS.subClassOf, SNOMED.Comorbidity))

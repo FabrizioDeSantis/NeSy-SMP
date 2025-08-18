@@ -4,16 +4,14 @@ This repository contains the code for NeSy-SMP, a project exploring the integrat
 
 ## Files
 
-*   **`main_bpi12.py`**: Contains the code for evaluating the approach on the BPIC2012 event log.
-*   **`main_bpi17.py`**: Contains the code for evaluating the approach on the BPIC2017 event log.
-*   **`main_sepsis.py`**: Contains the code for evaluating the approach on the SEPSIS event log.
-*   **`main_traffic.py`**: Contains the code for evaluating the approach on the TRAFFIC FINES dataset.
-*   **`data/dataset.py`**: Dataset class.
+*   **`main.py`**: Contains the code for evaluating the BiLSTM, LTN and NeSy-SMP models on a standard train-test split.
+*   **`stratified_main.py`**: Contains the code for evaluating the Random Forest, XGBoost, BiLSTM, LTN and NeSy-SMP models on a 5-fold cross validation.
+*   **`create_ckg.py`**: Contains the code for creating the clinical knowledge graph in RDF format.
+*   **`extract_comorbidities.py`**: Contains the code for extracting the comorbidities from clinical textual notes.
+*   **`extract_rules.py`**: Contains the code for extracting logical rules from a given knowledge graph in RDF format.
+*   **`filter_rules.py`**: Contains the code for filtering the extracted rules given a threshold and the main outcome.
 *   **`metrics.py`**: Contains the code for computing the metrics for the different configurations.
-*   **`plot_results.py`**: Script for plotting results with radar charts.
-*   **`logs`**: Folder that contains the scripts used to preprocess the event logs.
-*   **`model/lstm.py`**: Contains the architecture used for the LSTM/LTN.
-*   **`extract_ltl_rules.py`**: Contains the code for extracting LTL rules using Declarative mining
-*   **`knowledge_base.py`**: Contains the logical rules used for training the neuro-symbolic LTN.
-
-The tested event logs can be found at https://data.4tu.nl/articles/dataset
+*   **`plot_facts.py`**: Script for plotting the truth values of predicates and implications.
+*   **`data/dataset.py`**: Dataset class.
+*   **`data/extract_before_death.py`**: Contains the code for creating the 24-hour observation windows given the desired lead time (6, 12, 24, and 48 hours).
+*   **`model/preprocessing.py`**: Contains the code for preprocessing the data.
