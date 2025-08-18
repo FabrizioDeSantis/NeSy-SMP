@@ -134,23 +134,10 @@ g.add((SNOMED.SepticShock, SCHEMA.increaseRiskOf, SNOMED.Death))
 # RiskFactor for sepsis
 g.add((SNOMED.Cancer, SCHEMA.increasesRiskOf, SNOMED.Sepsis))
 g.add((SNOMED.Pneumonia, SCHEMA.increasesRiskOf, SNOMED.Sepsis))
-
-# # Treatment plans
-# g.add((SNOMED.OneHourBundle, RDFS.subClassOf, SCHEMA.possibleTreatmentPlan))
-# g.add((SNOMED.LactateMeasurement, RDFS.subClassOf, SNOMED.Actvity))
-# g.add((SNOMED.BloodCulture, RDFS.subClassOf, SNOMED.Actvity))
-# g.add((SNOMED.AdministrationOfAntibiotics, RDFS.subClassOf, SNOMED.Actvity))
-# g.add((SNOMED.AdministrationOfMedication, RDFS.subClassOf, SNOMED.Actvity))
-# g.add((SNOMED.VasopressorTherapy, RDFS.subClassOf, SNOMED.Actvity))
-# g.add((SNOMED.LactateMeasurement, SNOMED.partOf, SNOMED.OneHourBundle))
-# g.add((SNOMED.BloodCulture, SNOMED.partOf, SNOMED.OneHourBundle))
-# g.add((SNOMED.AdministrationOfAntibiotics, SNOMED.partOf, SNOMED.OneHourBundle))
-# g.add((SNOMED.AdministrationOfMedication, SNOMED.partOf, SNOMED.OneHourBundle))
-# g.add((SNOMED.VasopressorTherapy, SNOMED.partOf, SNOMED.OneHourBundle))
-# # DF relationships
-# g.add((SNOMED.LactateMeasurement, SNOMED.followedBy, SNOMED.BloodCulture))
-# g.add((SNOMED.BloodCulture, SNOMED.followedBy, SNOMED.AdministrationOfAntibiotics))
-# g.add((SNOMED.AdministrationOfAntibiotics, SNOMED.followedBy, SNOMED.AdministrationOfMedication))
-# g.add((SNOMED.AdministrationOfMedication, SNOMED.followedBy, SNOMED.VasopressorTherapy))
+g.add((SNOMED.HIV, SCHEMA.increasesRiskOf, SNOMED.Sepsis))
+g.add((SNOMED.CirrhosisOfLiver, SCHEMA.increasesRiskOf, SNOMED.Sepsis))
+g.add((SNOMED.KidneyDisease, SCHEMA.increasesRiskOf, SNOMED.Sepsis))
+g.add((SNOMED.CardiacInsufficiency, SCHEMA.increasesRiskOf, SNOMED.Sepsis))
+g.add((SNOMED.SepticShock, SCHEMA.increasesRiskOf, SNOMED.Sepsis))
 
 visualize(g)
