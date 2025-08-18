@@ -3,7 +3,7 @@ import numpy as np
 from datetime import timedelta
 
 print("Loading data...")
-df = pd.read_csv("event_log_48death.csv", dtype={"hadm_id": str, "subject_id": str})
+df = pd.read_csv("path_to_dataset.csv", dtype={"hadm_id": str, "subject_id": str})
 print("Data loaded.")
 
 df['time:timestamp'] = pd.to_datetime(df['time:timestamp'])
@@ -78,7 +78,7 @@ def process_patient_sliding_windows(patient_group):
             continue
 
         # --- LABELING --- (same logic as before)
-        labeling_horizon_end = window_end + timedelta(hours=48)
+        labeling_horizon_end = window_end + timedelta(hours=STRIDE_SIZE)
         died_label = 0
         if pd.notna(death_time) and (window_end < death_time <= labeling_horizon_end):
             died_label = 1
@@ -101,4 +101,4 @@ sliding_window_df = (
     .reset_index(drop=True)
 )
 
-sliding_window_df.to_csv("time_windows.csv", index=False)
+sliding_window_df.to_csv("time_windows.csv", index=False) # save extracted time windows
