@@ -140,6 +140,11 @@ g.add((SNOMED.ChronicDisease, SCHEMA.increaseRiskOf, SNOMED.Death))
 g.add((SNOMED.SepticShock, RDFS.subClassOf, SCHEMA.riskFactor))
 g.add((SNOMED.SepticShock, SCHEMA.increaseRiskOf, SNOMED.Death))
 
+g.add((SNOMED.Hypotension, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.Hypotension, RDFS.subClassOf, SNOMED.Comorbidity))
+g.add((SNOMED.Hypotension, SCHEMA.increaseRiskOf, SNOMED.Death))
+g.add((SNOMED.Hypotension, SNOMED.causedBy, SNOMED.Sepsis))
+
 # RiskFactor for sepsis
 g.add((SNOMED.Cancer, SCHEMA.increasesRiskOf, SNOMED.Sepsis))
 g.add((SNOMED.Pneumonia, SCHEMA.increasesRiskOf, SNOMED.Sepsis))
