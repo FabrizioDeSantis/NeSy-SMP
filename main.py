@@ -73,6 +73,8 @@ config = ModelConfig(
 features_dict = {s: i for i, s in enumerate(feature_names, start=1)}
 print(feature_names)
 
+# Extract features for XGBoost and Random Forest models
+
 X_train_xgb = []
 y_train_xgb = []
 
@@ -87,68 +89,67 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratif
 # print("Dataset size:", len(data))
 X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, stratify=y_train, random_state=seed)
 
-# def mean_excluding_zeros(values):
-#     non_zero_values = [v for v in values if v != 0.0]
-#     if not non_zero_values:
-#         return 0.0  # or `None` depending on your needs
-#     return sum(non_zero_values) / len(non_zero_values)
+def mean_excluding_zeros(values):
+    non_zero_values = [v for v in values if v != 0.0]
+    if not non_zero_values:
+        return 0.0  # or `None` depending on your needs
+    return sum(non_zero_values) / len(non_zero_values)
 
-# for x, y in zip(X_train, y_train):
-#     features = [lst for i, lst in enumerate(x[0]) if i not in (0, 1, 2, 3)]
-#     features = [mean_excluding_zeros(lst) for lst in features]
-#     X_train_xgb.append(np.array(features))
-#     y_train_xgb.append(y)
+for x, y in zip(X_train, y_train):
+    features = [lst for i, lst in enumerate(x[0]) if i not in (0, 1, 2, 3)]
+    features = [mean_excluding_zeros(lst) for lst in features]
+    X_train_xgb.append(np.array(features))
+    y_train_xgb.append(y)
 
-# for x, y in zip(X_val, y_val):
-#     features = [lst for i, lst in enumerate(x[0]) if i not in (0, 1, 2, 3)]
-#     features = [mean_excluding_zeros(lst) for lst in features]
-#     X_val_xgb.append(np.array(features))
-#     y_val_xgb.append(y)
+for x, y in zip(X_val, y_val):
+    features = [lst for i, lst in enumerate(x[0]) if i not in (0, 1, 2, 3)]
+    features = [mean_excluding_zeros(lst) for lst in features]
+    X_val_xgb.append(np.array(features))
+    y_val_xgb.append(y)
 
-# for x, y in zip(X_test, y_test):
-#     features = [lst for i, lst in enumerate(x[0]) if i not in (0, 1, 2, 3)]
-#     features = [mean_excluding_zeros(lst) for lst in features]
-#     X_test_xgb.append(np.array(features))
-#     y_test_xgb.append(y)
+for x, y in zip(X_test, y_test):
+    features = [lst for i, lst in enumerate(x[0]) if i not in (0, 1, 2, 3)]
+    features = [mean_excluding_zeros(lst) for lst in features]
+    X_test_xgb.append(np.array(features))
+    y_test_xgb.append(y)
     
-# # train xgboost model
-# print("--- Training XGBoost model")
-# xgb_model = XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=seed)
-# xgb_model.fit(X_train_xgb, y_train_xgb)
-# # predict on test set
-# y_pred_xgb = xgb_model.predict(X_test_xgb)
-# # predict probabilities
-# y_proba_xgb = xgb_model.predict_proba(X_test_xgb)[:, 1]
-# # calculate metrics
-# accuracy_xgb = accuracy_score(y_test_xgb, y_pred_xgb)
-# f1_xgb = f1_score(y_test_xgb, y_pred_xgb, average='macro')
-# precision_xgb = precision_score(y_test_xgb, y_pred_xgb, average='macro')
-# recall_xgb = recall_score(y_test_xgb, y_pred_xgb, average='macro')
-# roc_auc_xgb = roc_auc_score(y_test_xgb, y_proba_xgb)
-# print("Metrics XGBoost")
-# print("Accuracy:", accuracy_xgb)
-# print("F1 Score:", f1_xgb)
-# print("Precision:", precision_xgb)
-# print("Recall:", recall_xgb)
-# print("ROC AUC:", roc_auc_xgb)
+# train xgboost model
+print("--- Training XGBoost model")
+xgb_model = XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=seed)
+xgb_model.fit(X_train_xgb, y_train_xgb)
+# predict on test set
+y_pred_xgb = xgb_model.predict(X_test_xgb)
+# predict probabilities
+y_proba_xgb = xgb_model.predict_proba(X_test_xgb)[:, 1]
+# calculate metrics
+accuracy_xgb = accuracy_score(y_test_xgb, y_pred_xgb)
+f1_xgb = f1_score(y_test_xgb, y_pred_xgb, average='macro')
+precision_xgb = precision_score(y_test_xgb, y_pred_xgb, average='macro')
+recall_xgb = recall_score(y_test_xgb, y_pred_xgb, average='macro')
+roc_auc_xgb = roc_auc_score(y_test_xgb, y_proba_xgb)
+print("Metrics XGBoost")
+print("Accuracy:", accuracy_xgb)
+print("F1 Score:", f1_xgb)
+print("Precision:", precision_xgb)
+print("Recall:", recall_xgb)
+print("ROC AUC:", roc_auc_xgb)
 
-# print("--- Training Random Forest model")
-# rf = RandomForestClassifier(n_estimators=100, random_state=42)
-# rf.fit(X_train_xgb, y_train_xgb)
-# y_pred = rf.predict(X_test_xgb)
-# probs = rf.predict_proba(X_test_xgb)[:, 1]
-# accuracy_rf = accuracy_score(y_test_xgb, y_pred)
-# f1_rf = f1_score(y_test_xgb, y_pred, average='macro')
-# precision_rf = precision_score(y_test_xgb, y_pred, average='macro')
-# recall_rf = recall_score(y_test_xgb, y_pred, average='macro')
-# roc_auc_rf = roc_auc_score(y_test_xgb, probs)
-# print("Metrics Random Forest")
-# print("Accuracy:", accuracy_rf)
-# print("F1 Score:", f1_rf)
-# print("Precision:", precision_rf)
-# print("Recall:", recall_rf)
-# print("ROC AUC:", roc_auc_rf)
-
+print("--- Training Random Forest model")
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X_train_xgb, y_train_xgb)
+y_pred = rf.predict(X_test_xgb)
+probs = rf.predict_proba(X_test_xgb)[:, 1]
+accuracy_rf = accuracy_score(y_test_xgb, y_pred)
+f1_rf = f1_score(y_test_xgb, y_pred, average='macro')
+precision_rf = precision_score(y_test_xgb, y_pred, average='macro')
+recall_rf = recall_score(y_test_xgb, y_pred, average='macro')
+roc_auc_rf = roc_auc_score(y_test_xgb, probs)
+print("Metrics Random Forest")
+print("Accuracy:", accuracy_rf)
+print("F1 Score:", f1_rf)
+print("Precision:", precision_rf)
+print("Recall:", recall_rf)
+print("ROC AUC:", roc_auc_rf)
 
 train_dataset = SepsisDataset(X_train, y_train, feature_names)
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
