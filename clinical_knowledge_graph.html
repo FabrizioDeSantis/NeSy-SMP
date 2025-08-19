@@ -1,0 +1,183 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 1000px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+             #config {
+                 float: left;
+                 width: 400px;
+                 height: 600px;
+             }
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+            <div id="config"></div>
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/Pneumonia", "label": "Pneumonia", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/RiskFactor", "label": "RiskFactor", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/Sepsis", "label": "Sepsis", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/Comorbidity", "label": "Comorbidity", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/Death", "label": "Death", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://example.org/clinical-guideline/hasAge", "label": "hasAge", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/Patient", "label": "Patient", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://www.w3.org/2002/07/owl#ObjectProperty", "label": "ObjectProperty", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/Age", "label": "Age", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/PatientDischargedAlive", "label": "PatientDischargedAlive", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/KidneyDisease", "label": "KidneyDisease", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/Bilirubin", "label": "Bilirubin", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "2", "label": "2", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/Outcome", "label": "Outcome", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://example.org/clinical-guideline/hasOxygenSaturation", "label": "hasOxygenSaturation", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/OxygenSaturation", "label": "OxygenSaturation", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/CirrhosisOfLiver", "label": "CirrhosisOfLiver", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/HIV", "label": "HIV", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/WhiteBloodCells", "label": "WhiteBloodCells", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "30", "label": "30", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/Cancer", "label": "Cancer", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/Platelet", "label": "Platelet", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "50", "label": "50", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/CReactiveProtein", "label": "CReactiveProtein", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "100", "label": "100", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://example.org/clinical-guideline/hasTemperature", "label": "hasTemperature", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/BodyTemperature", "label": "BodyTemperature", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://example.org/clinical-guideline/hasHeartRate", "label": "hasHeartRate", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/HeartRate", "label": "HeartRate", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/MeanArterialPressure", "label": "MeanArterialPressure", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "65", "label": "65", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/CardiacInsufficiency", "label": "CardiacInsufficiency", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://example.org/clinical-guideline/hasBMI", "label": "hasBMI", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/BodyMassIndex", "label": "BodyMassIndex", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/Hypotension", "label": "Hypotension", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://example.org/clinical-guideline/hasRespiratoryRate", "label": "hasRespiratoryRate", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/RespiratoryRate", "label": "RespiratoryRate", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://example.org/clinical-guideline/hasDiastolicArterialPressure", "label": "hasDiastolicArterialPressure", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/DiastolicArterialPressure", "label": "DiastolicArterialPressure", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/ChronicDisease", "label": "ChronicDisease", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/SepticShock", "label": "SepticShock", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/SingleOrganDysfunctionSyndrome", "label": "SingleOrganDysfunctionSyndrome", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://example.org/clinical-guideline/hasSystolicArterialPressure", "label": "hasSystolicArterialPressure", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/SystolicArterialPressure", "label": "SystolicArterialPressure", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/Lactate", "label": "Lactate", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "4", "label": "4", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://example.org/clinical-guideline/hasMeanArterialPressure", "label": "hasMeanArterialPressure", "shape": "dot", "size": 40}, {"color": "#97c2fc", "font": {"size": 40}, "id": "http://snomed.info/id/MultipleOrganDysfunctionSyndrome", "label": "MultipleOrganDysfunctionSyndrome", "shape": "dot", "size": 40}]);
+                  edges = new vis.DataSet([{"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Pneumonia", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Pneumonia", "label": "increasesRiskOf", "to": "http://snomed.info/id/Sepsis", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Pneumonia", "label": "subClassOf", "to": "http://snomed.info/id/Comorbidity", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Pneumonia", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasAge", "label": "domain", "to": "http://snomed.info/id/Patient", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasAge", "label": "type", "to": "http://www.w3.org/2002/07/owl#ObjectProperty", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasAge", "label": "range", "to": "http://snomed.info/id/Age", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Patient", "label": "hasOutcome", "to": "http://snomed.info/id/PatientDischargedAlive", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Patient", "label": "hasOutcome", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/KidneyDisease", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/KidneyDisease", "label": "increasesRiskOf", "to": "http://snomed.info/id/Sepsis", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/KidneyDisease", "label": "subClassOf", "to": "http://snomed.info/id/Comorbidity", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/KidneyDisease", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Bilirubin", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Bilirubin", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Bilirubin", "label": "greaterOrEqual", "to": "2", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Death", "label": "subClassOf", "to": "http://snomed.info/id/Outcome", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Death", "label": "type", "to": "http://snomed.info/id/Outcome", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasOxygenSaturation", "label": "domain", "to": "http://snomed.info/id/Patient", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasOxygenSaturation", "label": "type", "to": "http://www.w3.org/2002/07/owl#ObjectProperty", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasOxygenSaturation", "label": "range", "to": "http://snomed.info/id/OxygenSaturation", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/CirrhosisOfLiver", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/CirrhosisOfLiver", "label": "increasesRiskOf", "to": "http://snomed.info/id/Sepsis", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/CirrhosisOfLiver", "label": "subClassOf", "to": "http://snomed.info/id/Comorbidity", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/CirrhosisOfLiver", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/HIV", "label": "increasesRiskOf", "to": "http://snomed.info/id/Sepsis", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/HIV", "label": "subClassOf", "to": "http://snomed.info/id/Comorbidity", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/HIV", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/HIV", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/WhiteBloodCells", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/WhiteBloodCells", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/WhiteBloodCells", "label": "greaterOrEqual", "to": "30", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Cancer", "label": "increasesRiskOf", "to": "http://snomed.info/id/Sepsis", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Cancer", "label": "subClassOf", "to": "http://snomed.info/id/Comorbidity", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Cancer", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Cancer", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Platelet", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Platelet", "label": "lessOrEqual", "to": "50", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Platelet", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/CReactiveProtein", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/CReactiveProtein", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/CReactiveProtein", "label": "greaterOrEqual", "to": "100", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasTemperature", "label": "type", "to": "http://www.w3.org/2002/07/owl#ObjectProperty", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasTemperature", "label": "range", "to": "http://snomed.info/id/BodyTemperature", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasTemperature", "label": "domain", "to": "http://snomed.info/id/Patient", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasHeartRate", "label": "range", "to": "http://snomed.info/id/HeartRate", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasHeartRate", "label": "domain", "to": "http://snomed.info/id/Patient", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasHeartRate", "label": "type", "to": "http://www.w3.org/2002/07/owl#ObjectProperty", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/MeanArterialPressure", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/MeanArterialPressure", "label": "lessOrEqual", "to": "65", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/MeanArterialPressure", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/CardiacInsufficiency", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/CardiacInsufficiency", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/CardiacInsufficiency", "label": "increasesRiskOf", "to": "http://snomed.info/id/Sepsis", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/CardiacInsufficiency", "label": "subClassOf", "to": "http://snomed.info/id/Comorbidity", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasBMI", "label": "type", "to": "http://www.w3.org/2002/07/owl#ObjectProperty", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasBMI", "label": "domain", "to": "http://snomed.info/id/Patient", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasBMI", "label": "range", "to": "http://snomed.info/id/BodyMassIndex", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Hypotension", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Hypotension", "label": "causedBy", "to": "http://snomed.info/id/Sepsis", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Hypotension", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasRespiratoryRate", "label": "domain", "to": "http://snomed.info/id/Patient", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasRespiratoryRate", "label": "range", "to": "http://snomed.info/id/RespiratoryRate", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasRespiratoryRate", "label": "type", "to": "http://www.w3.org/2002/07/owl#ObjectProperty", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/PatientDischargedAlive", "label": "subClassOf", "to": "http://snomed.info/id/Outcome", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasDiastolicArterialPressure", "label": "range", "to": "http://snomed.info/id/DiastolicArterialPressure", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasDiastolicArterialPressure", "label": "domain", "to": "http://snomed.info/id/Patient", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasDiastolicArterialPressure", "label": "type", "to": "http://www.w3.org/2002/07/owl#ObjectProperty", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/ChronicDisease", "label": "subClassOf", "to": "http://snomed.info/id/Comorbidity", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/ChronicDisease", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/ChronicDisease", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Age", "label": "increaseRiskOf", "to": "http://snomed.info/id/Sepsis", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Age", "label": "greaterOrEqual", "to": "65", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Age", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/SepticShock", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/SepticShock", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/SepticShock", "label": "increasesRiskOf", "to": "http://snomed.info/id/Sepsis", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/SingleOrganDysfunctionSyndrome", "label": "causedBy", "to": "http://snomed.info/id/Sepsis", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/SingleOrganDysfunctionSyndrome", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasSystolicArterialPressure", "label": "type", "to": "http://www.w3.org/2002/07/owl#ObjectProperty", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasSystolicArterialPressure", "label": "range", "to": "http://snomed.info/id/SystolicArterialPressure", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasSystolicArterialPressure", "label": "domain", "to": "http://snomed.info/id/Patient", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Lactate", "label": "greaterOrEqual", "to": "4", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Lactate", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/Lactate", "label": "subClassOf", "to": "http://snomed.info/id/RiskFactor", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasMeanArterialPressure", "label": "range", "to": "http://snomed.info/id/MeanArterialPressure", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasMeanArterialPressure", "label": "domain", "to": "http://snomed.info/id/Patient", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://example.org/clinical-guideline/hasMeanArterialPressure", "label": "type", "to": "http://www.w3.org/2002/07/owl#ObjectProperty", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/MultipleOrganDysfunctionSyndrome", "label": "increaseRiskOf", "to": "http://snomed.info/id/Death", "width": 1}, {"arrows": "to", "color": "#848484", "from": "http://snomed.info/id/MultipleOrganDysfunctionSyndrome", "label": "causedBy", "to": "http://snomed.info/id/Sepsis", "width": 1}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": true
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "barnesHut": {
+            "avoidOverlap": 0,
+            "centralGravity": 0.3,
+            "damping": 0.09,
+            "gravitationalConstant": -80000,
+            "springConstant": 0.05,
+            "springLength": 400
+        },
+        "enabled": true,
+        "repulsion": {
+            "centralGravity": 0.01,
+            "damping": 0.09,
+            "nodeDistance": 300,
+            "springConstant": 0.05,
+            "springLength": 500
+        },
+        "solver": "repulsion",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+                  // if this network requires displaying the configure window,
+                  // put it in its div
+                  options.configure["container"] = document.getElementById("config");
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

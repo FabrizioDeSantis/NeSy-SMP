@@ -1,7 +1,6 @@
 from rdflib import Graph, Namespace, URIRef, Literal, BNode
 from rdflib.namespace import RDF, RDFS, OWL, XSD
 from utils import visualize
-import networkx as nx
 
 CKG = Namespace("http://example.org/clinical-guideline/")
 SNOMED = Namespace("http://snomed.info/id/")
@@ -18,20 +17,12 @@ g.bind("sct", SNOMED)
 g.bind("schema", SCHEMA)
 
 # Patient
-#g.add((SNOMED.Patient, RDF.type, OWL.Class))
 g.add((SNOMED.Patient, SNOMED.hasOutcome, SNOMED.Death))
 g.add((SNOMED.Patient, SNOMED.hasOutcome, SNOMED.PatientDischargedAlive))
 
-# Diseases
-# g.add((SNOMED.Cancer, RDF.type, OWL.Class))
-# g.add((SNOMED.Pneumonia, RDF.type, OWL.Class))
-# g.add((SNOMED.Sepsis, RDF.type, OWL.Class))
-
 # Outcomes
-# g.add((SNOMED.Death, RDF.type, OWL.Class))
 g.add((SNOMED.Death, RDFS.subClassOf, SNOMED.Outcome))
 g.add((SNOMED.Death, RDF.type, SNOMED.Outcome))
-# g.add((SNOMED.PatientDischargedAlive, RDF.type, OWL.Class))
 g.add((SNOMED.PatientDischargedAlive, RDFS.subClassOf, SNOMED.Outcome))
 
 # Patient attributes
@@ -72,75 +63,67 @@ g.add((CKG.hasOxygenSaturation, RDFS.domain, SNOMED.Patient))
 g.add((CKG.hasOxygenSaturation, RDFS.range, SNOMED.OxygenSaturation))
 
 # RiskFactor for death
-# g.add((SCHEMA.riskFactor, RDF.type, OWL.Class))
-g.add((CKG.AgeRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
-g.add((CKG.AgeRiskFactor, SCHEMA.propertyId, SNOMED.Age))
-g.add((CKG.AgeRiskFactor, SNOMED.hasOutcome, SNOMED.Death))
-g.add((CKG.AgeRiskFactor, SCHEMA.greaterOrEqual, Literal(65, datatype=XSD.integer)))
-g.add((CKG.AgeRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Sepsis))
+# g.add((SNOMED.RiskFactor, RDF.type, OWL.Class))
+g.add((SNOMED.Age, RDFS.subClassOf, SNOMED.RiskFactor))
+g.add((SNOMED.Age, SCHEMA.greaterOrEqual, Literal(65, datatype=XSD.integer)))
+g.add((SNOMED.Age, SCHEMA.increaseRiskOf, SNOMED.Sepsis))
 
-g.add((CKG.CReactiveProteinRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
-g.add((CKG.CReactiveProteinRiskFactor, SCHEMA.propertyId, SNOMED.CReactiveProtein))
-g.add((CKG.CReactiveProteinRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
-g.add((CKG.CReactiveProteinRiskFactor, SCHEMA.greaterOrEqual, Literal(100, datatype=XSD.integer)))
+g.add((SNOMED.CReactiveProtein, RDFS.subClassOf, SNOMED.RiskFactor))
+g.add((SNOMED.CReactiveProtein, SCHEMA.increaseRiskOf, SNOMED.Death))
+g.add((SNOMED.CReactiveProtein, SCHEMA.greaterOrEqual, Literal(100, datatype=XSD.integer)))
 
-g.add((CKG.LactateRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
-g.add((CKG.LactateRiskFactor, SCHEMA.propertyId, SNOMED.Lactate))
-g.add((CKG.LactateRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
-g.add((CKG.LactateRiskFactor, SCHEMA.greaterOrEqual, Literal(4, datatype=XSD.integer)))
+g.add((SNOMED.Lactate, RDFS.subClassOf, SNOMED.RiskFactor))
+g.add((SNOMED.Lactate, SCHEMA.increaseRiskOf, SNOMED.Death))
+g.add((SNOMED.Lactate, SCHEMA.greaterOrEqual, Literal(4, datatype=XSD.integer)))
 
-g.add((CKG.WhiteBloodCellsRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
-g.add((CKG.WhiteBloodCellsRiskFactor, SCHEMA.propertyId, SNOMED.WhiteBloodCells))
-g.add((CKG.WhiteBloodCellsRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
-g.add((CKG.WhiteBloodCellsRiskFactor, SCHEMA.greaterOrEqual, Literal(30, datatype=XSD.integer)))
+g.add((SNOMED.WhiteBloodCells, RDFS.subClassOf, SNOMED.RiskFactor))
+g.add((SNOMED.WhiteBloodCells, SCHEMA.increaseRiskOf, SNOMED.Death))
+g.add((SNOMED.WhiteBloodCells, SCHEMA.greaterOrEqual, Literal(30, datatype=XSD.integer)))
 
-g.add((CKG.BilirubinRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
-g.add((CKG.BilirubinRiskFactor, SCHEMA.propertyId, SNOMED.Bilirubin))
-g.add((CKG.BilirubinRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
-g.add((CKG.BilirubinRiskFactor, SCHEMA.greaterOrEqual, Literal(2, datatype=XSD.float)))
+g.add((SNOMED.Bilirubin, RDFS.subClassOf, SNOMED.RiskFactor))
+g.add((SNOMED.Bilirubin, SCHEMA.increaseRiskOf, SNOMED.Death))
+g.add((SNOMED.Bilirubin, SCHEMA.greaterOrEqual, Literal(2, datatype=XSD.float)))
 
-g.add((CKG.PlateletRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
-g.add((CKG.PlateletRiskFactor, SCHEMA.propertyId, SNOMED.Platelet))
-g.add((CKG.PlateletRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
-g.add((CKG.PlateletRiskFactor, SCHEMA.lessOrEqual, Literal(50, datatype=XSD.integer)))
+g.add((SNOMED.Platelet, RDFS.subClassOf, SNOMED.RiskFactor))
+g.add((SNOMED.Platelet, SCHEMA.increaseRiskOf, SNOMED.Death))
+g.add((SNOMED.Platelet, SCHEMA.lessOrEqual, Literal(50, datatype=XSD.integer)))
 
-g.add((CKG.MeanArterialPressureRiskFactor, RDFS.subClassOf, SCHEMA.riskFactor))
-g.add((CKG.MeanArterialPressureRiskFactor, SCHEMA.propertyId, SNOMED.MeanArterialPressure))
-g.add((CKG.MeanArterialPressureRiskFactor, SCHEMA.increaseRiskOf, SNOMED.Death))
-g.add((CKG.MeanArterialPressureRiskFactor, SCHEMA.lessOrEqual, Literal(65, datatype=XSD.integer)))
+g.add((SNOMED.MeanArterialPressure, RDFS.subClassOf, SNOMED.RiskFactor))
+g.add((SNOMED.MeanArterialPressure, SCHEMA.increaseRiskOf, SNOMED.Death))
+g.add((SNOMED.MeanArterialPressure, SCHEMA.lessOrEqual, Literal(65, datatype=XSD.integer)))
 
-g.add((SNOMED.Cancer, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.Cancer, RDFS.subClassOf, SNOMED.RiskFactor))
 g.add((SNOMED.Cancer, RDFS.subClassOf, SNOMED.Comorbidity))
 g.add((SNOMED.Cancer, SCHEMA.increaseRiskOf, SNOMED.Death))
 
-g.add((SNOMED.Pneumonia, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.Pneumonia, RDFS.subClassOf, SNOMED.RiskFactor))
 g.add((SNOMED.Pneumonia, RDFS.subClassOf, SNOMED.Comorbidity))
 g.add((SNOMED.Pneumonia, SCHEMA.increaseRiskOf, SNOMED.Death))
 
-g.add((SNOMED.HIV, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.HIV, RDFS.subClassOf, SNOMED.RiskFactor))
 g.add((SNOMED.HIV, RDFS.subClassOf, SNOMED.Comorbidity))
 g.add((SNOMED.HIV, SCHEMA.increaseRiskOf, SNOMED.Death))
 
-g.add((SNOMED.CirrhosisOfLiver, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.CirrhosisOfLiver, RDFS.subClassOf, SNOMED.RiskFactor))
 g.add((SNOMED.CirrhosisOfLiver, RDFS.subClassOf, SNOMED.Comorbidity))
 g.add((SNOMED.CirrhosisOfLiver, SCHEMA.increaseRiskOf, SNOMED.Death))
 
-g.add((SNOMED.KidneyDisease, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.KidneyDisease, RDFS.subClassOf, SNOMED.RiskFactor))
 g.add((SNOMED.KidneyDisease, RDFS.subClassOf, SNOMED.Comorbidity))
 g.add((SNOMED.KidneyDisease, SCHEMA.increaseRiskOf, SNOMED.Death))
 
-g.add((SNOMED.CardiacInsufficiency, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.CardiacInsufficiency, RDFS.subClassOf, SNOMED.RiskFactor))
 g.add((SNOMED.CardiacInsufficiency, RDFS.subClassOf, SNOMED.Comorbidity))
 g.add((SNOMED.CardiacInsufficiency, SCHEMA.increaseRiskOf, SNOMED.Death))
 
-g.add((SNOMED.ChronicDisease, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.ChronicDisease, RDFS.subClassOf, SNOMED.RiskFactor))
 g.add((SNOMED.ChronicDisease, RDFS.subClassOf, SNOMED.Comorbidity))
 g.add((SNOMED.ChronicDisease, SCHEMA.increaseRiskOf, SNOMED.Death))
 
-g.add((SNOMED.SepticShock, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.SepticShock, RDFS.subClassOf, SNOMED.RiskFactor))
 g.add((SNOMED.SepticShock, SCHEMA.increaseRiskOf, SNOMED.Death))
 
-g.add((SNOMED.Hypotension, RDFS.subClassOf, SCHEMA.riskFactor))
+g.add((SNOMED.Hypotension, RDFS.subClassOf, SNOMED.RiskFactor))
 g.add((SNOMED.Hypotension, SCHEMA.increaseRiskOf, SNOMED.Death))
 g.add((SNOMED.Hypotension, SNOMED.causedBy, SNOMED.Sepsis))
 
@@ -149,7 +132,6 @@ g.add((SNOMED.SingleOrganDysfunctionSyndrome, SNOMED.causedBy, SNOMED.Sepsis))
 
 g.add((SNOMED.MultipleOrganDysfunctionSyndrome, SCHEMA.increaseRiskOf, SNOMED.Death))
 g.add((SNOMED.MultipleOrganDysfunctionSyndrome, SNOMED.causedBy, SNOMED.Sepsis))
-
 
 # RiskFactor for sepsis
 g.add((SNOMED.Cancer, SCHEMA.increasesRiskOf, SNOMED.Sepsis))

@@ -1,59 +1,86 @@
 import pandas as pd
 from collections import Counter
 import matplotlib.pyplot as plt
-from ltn.fuzzy_ops import AggregPMeanError
-import ltn
+from rdflib.extras.external_graph_libs import rdflib_to_networkx_multidigraph
+from pyvis.network import Network
+from rdflib.namespace import split_uri
+import matplotlib.pyplot as plt
+from rdflib import URIRef
+import networkx as nx
 
-def pad_lists(lists, num_features, max_length):
-    return [tuple(lst[i] + [0] * (max_length - len(lst[i])) for i in range(num_features)) for lst in lists]
-
-def print_dataset_info(training_list, validation_list, test_list):
-    print("-- DATASET INFO")
-    print(f"Training set size: {len(training_list)}")
-    print(f"Validation set size: {len(validation_list)}")
-    print(f"Test set size: {len(test_list)}")
-    print("--- Label distribution")
-    print("--- Training set")
-    counts = Counter(training_list[1])
-    print(counts)
-    print("--- Validation set")
-    counts = Counter(validation_list[1])
-    print(counts)
-    print("--- Test set")
-    counts = Counter(test_list[1])
-    print(counts)
-
-def compute_truth_values(predicate, param, func_com, func_age, clinical_concept, loader):
-    truth_values = []
-    for x, y, c_id in loader:
-        x_All = ltn.Variable("x_All", x)
-        truth_values.append(predicate(param(x_All), func_com(x_All), func_age(x_All)).value.cpu().detach().numpy())
-    # flatten the list of lists
-    truth_values = [item for sublist in truth_values for item in sublist]
-    print(truth_values)
-
-def plot_compliance(compliance_dict):
-    # Sort the lengths for proper ordering in the plot
-    lengths = sorted(compliance_dict.keys())
-    compliance_scores = [compliance_dict[length] for length in lengths]
+def visualize(graph):
+    with open("kg.txt", "w") as f:
+        for s, p, o in graph:
+            s = s.replace("http://example.org/process/", "")
+            p = p.replace("http://example.org/process/", "")
+            o = o.replace("http://example.org/process/", "")
+            
+            s = s.replace("http://snomed.info/id/", "")
+            p = p.replace("http://snomed.info/id/", "")
+            o = o.replace("http://snomed.info/id/", "")
+            
+            # _, s = split_uri(s)
+            # _, p = split_uri(p)
+            # if isinstance(o, URIRef):
+            #     _, o = split_uri(o)
+            print(f"Subject: {s}, Predicate: {p}, Object: {o}")
+            f.write(f"{s}\t{p}\t{o}\n")
+    nx_graph = rdflib_to_networkx_multidigraph(graph)
     
-    # Create the plot
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(lengths, compliance_scores, marker='o', linestyle='-', color='b')
-    
-    # Add labels and title
-    ax.set_xlabel('Case Length', fontsize=12)
-    ax.set_ylabel('Compliance Score', fontsize=12)
-    ax.set_title('Compliance by Case Length', fontsize=14)
-    
-    # Set y-axis limits and grid
-    ax.set_ylim(0, 1.05)
-    ax.grid(True, linestyle='--', alpha=0.7)
-    
-    plt.show()
 
-class WeightedSatAgg:
-    def __init__(self, agg_op=AggregPMeanError(p=2)):
-        self.agg_op = agg_op
-    def __call__(self, *closed_formulas):
-        truth_values = list(closed_formulas)
+    # Strip namespaces from node labels
+    for node in nx_graph.nodes():
+        if isinstance(node, URIRef):
+            try:
+                _, local_part = split_uri(node)
+                nx_graph.nodes[node]["label"] = local_part
+            except:
+                nx_graph.nodes[node]["label"] = str(node)
+        else:
+            nx_graph.nodes[node]["label"] = str(node)
+        nx_graph.nodes[node]["size"] = 40  # Increase node size here
+        nx_graph.nodes[node]["font"] = {"size": 40} 
+        # if nx_graph.nodes[node]["label"] == "Sepsis" or nx_graph.nodes[node]["label"] == "Patient" or nx_graph.nodes[node]["label"] == "Outcome":
+        #     nx_graph.nodes[node]["color"] = "#ff0000"
+        # elif nx_graph.nodes[node]["label"] == "HighLactateIncreasesMortality":
+        #     nx_graph.nodes[node]["color"] = "#16cd00"
+        # elif nx_graph.nodes[node]["label"] == "Symptom":
+        #     nx_graph.nodes[node]["color"] = "#2edcff"
+        # elif nx_graph.nodes[node]["label"] == "Disease":
+        #     nx_graph.nodes[node]["color"] = "#ffb62e"
+
+    # Strip namespaces from edge labels
+    for u, v, k, data in nx_graph.edges(data=True, keys=True):
+        try:
+            _, local_part = split_uri(k)
+            label = local_part
+        except:
+            label = str(k)
+        data["label"] = label
+        if label == "is_followed_by":
+            data["color"] = "#16cd00"  # Set edge color to red
+        else:
+            data["color"] = "#848484"  # Set edge color to gray
+        print(data)
+
+    net = Network(
+        height="1000px",
+        width="100%",
+        notebook=False,
+        directed=True
+    )
+
+    plt.figure(figsize=(100, 100))
+    nx.draw(nx_graph, with_labels=True, node_color='lightblue', edge_color='gray', node_size=2000, font_size=16)
+
+    # Save to PNG
+    plt.savefig("graph.svg", format="svg")
+    plt.close()
+
+    net.from_nx(nx_graph)
+
+    net.barnes_hut(spring_length=400, spring_strength=0.05, damping=0.09)
+    net.repulsion(node_distance=300, central_gravity=0.01, spring_length=500)
+
+    net.show_buttons()
+    net.write_html("clinical_knowledge_graph.html")
