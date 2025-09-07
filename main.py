@@ -135,7 +135,7 @@ print("Recall:", recall_xgb)
 print("ROC AUC:", roc_auc_xgb)
 
 print("--- Training Random Forest model")
-rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42)
 rf.fit(X_train_xgb, y_train_xgb)
 y_pred = rf.predict(X_test_xgb)
 probs = rf.predict_proba(X_test_xgb)[:, 1]
