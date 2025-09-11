@@ -1,4 +1,5 @@
 import pandas as pd
+from sqlalchemy import values
 import ltn
 import torch
 import numpy as np
@@ -14,6 +15,7 @@ from metrics import compute_metrics
 import matplotlib.pyplot as plt
 import seaborn as sns
 import random
+import math
 
 from sklearn.ensemble import RandomForestClassifier
 
@@ -133,24 +135,38 @@ for i, (train_index, test_index) in enumerate(skf.split(X_all, y_all)):
     def mean_excluding_zeros(values):
         non_zero_values = [v for v in values if v != 0.0]
         if not non_zero_values:
-            return 0.0  # or `None` depending on your needs
+            return 0.0
         return sum(non_zero_values) / len(non_zero_values)
+    
+    def std_excluding_zeros(values):
+        non_zero_values = [v for v in values if v != 0.0]
+        if not non_zero_values:
+            return 0.0
+        mean = sum(non_zero_values) / len(non_zero_values)
+        variance = sum((v - mean) ** 2 for v in non_zero_values) / len(non_zero_values)
+        return math.sqrt(variance)
 
     for x, y in zip(X_train, y_train):
         features = [lst for i, lst in enumerate(x[0]) if i not in (0, 1, 2, 3)]
         features = [mean_excluding_zeros(lst) for lst in features]
+        features_std = [std_excluding_zeros(lst) for lst in features]
+        features = features + features_std
         X_train_xgb.append(np.array(features))
         y_train_xgb.append(y)
 
     for x, y in zip(X_val, y_val):
         features = [lst for i, lst in enumerate(x[0]) if i not in (0, 1, 2, 3)]
         features = [mean_excluding_zeros(lst) for lst in features]
+        features_std = [std_excluding_zeros(lst) for lst in features]
+        features = features + features_std
         X_val_xgb.append(np.array(features))
         y_val_xgb.append(y)
 
     for x, y in zip(X_test, y_test):
         features = [lst for i, lst in enumerate(x[0]) if i not in (0, 1, 2, 3)]
         features = [mean_excluding_zeros(lst) for lst in features]
+        features_std = [std_excluding_zeros(lst) for lst in features]
+        features = features + features_std
         X_test_xgb.append(np.array(features))
         y_test_xgb.append(y)
     
