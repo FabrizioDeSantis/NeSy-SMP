@@ -27,6 +27,7 @@ the outcome. The models are evaluated in two settings:
 - [Temporal split and learning curves](#temporal-split-and-learning-curves)
 - [Experiments](#experiments)
 - [Repository layout](#repository-layout)
+- [Citation](#citation)
 
 ## Setup
 
@@ -82,11 +83,11 @@ survivors, the 24-hour window is placed at random during the stay. See `data/ext
 ## Quick start
 
 ```bash
-# single train/validation/test split (24 h horizon); XGBoost, LSTM, LTN w/o and w/ knowledge
-python main.py
+# single train/validation/test split; XGBoost, LSTM, LTN w/o and w/ knowledge
+python main.py --horizon 24
 
-# 5-fold stratified cross-validation (6 h horizon); adds Random Forest, reports mean ± std
-python stratified_main.py
+# 5-fold stratified cross-validation; adds Random Forest, reports mean ± std
+python stratified_main.py --horizon 6
 
 # temporal split with learning curves, all horizons (long run), then the paper figures and tables
 python temporal_train_size.py
@@ -104,6 +105,7 @@ python main.py --num_epochs 1 --num_epochs_nesy 1
 
 | Option | Default | Meaning |
 |---|---|---|
+| `--horizon` | `24` (`main.py`), `6` (`stratified_main.py`) | Prediction horizon in hours: `6`, `12`, `24` or `48` |
 | `--hidden_size` | `128` | LSTM hidden size |
 | `--num_layers` | `2` | LSTM layers |
 | `--dropout_rate` | `0.1` | LSTM dropout |
@@ -116,7 +118,11 @@ python main.py --num_epochs 1 --num_epochs_nesy 1
 | `--sigmoid_width` | `0.25` | `sigmoid`: initial slope, so that truth goes from 0.12 to 0.88 within ± width × threshold |
 | `--freeze_sigmoid` | off | `sigmoid`: keep thresholds, slopes and comorbidity weights fixed |
 
-The horizon is set by `INTERNAL_DATA_PATH` and `EXTERNAL_DATA_PATH` at the top of each script.
+`--horizon` selects which pair of event logs is read (see [Data](#data)). To run every horizon:
+
+```bash
+for h in 6 12 24 48; do python stratified_main.py --horizon $h; done
+```
 
 **`main.py` outputs:**
 
@@ -125,8 +131,8 @@ The horizon is set by `INTERNAL_DATA_PATH` and `EXTERNAL_DATA_PATH` at the top o
 - the IDs of deaths that only the model with knowledge caught;
 - the checkpoints `lstm_best.pth`, `ltn_w_o_k.pth` and `ltn_w_k.pth`.
 
-**`stratified_main.py` outputs:** `stratified_results.txt` (internal test folds) and
-`stratified_results_external.txt` (eICU). Both report accuracy, macro F1, macro precision, macro recall and ROC
+**`stratified_main.py` outputs:** `stratified_results_<h>h.txt` (internal test folds) and
+`stratified_results_external_<h>h.txt` (eICU), where `<h>` is the horizon. Both report accuracy, macro F1, macro precision, macro recall and ROC
 AUC as mean ± std over the folds. The script also prints the training and inference times and the parameter
 counts.
 
@@ -268,8 +274,8 @@ python paper_results_temporal_train_size.py \
 
 | Script | Horizon | What it does | Output |
 |---|---|---|---|
-| `main.py` | 24 h | Single split (70/30, then 20% of training for validation), external validation, error analysis, calibration | see [Quick start](#quick-start) |
-| `stratified_main.py` | 6 h | 5-fold stratified CV of all models | `stratified_results*.txt` |
+| `main.py` | 6–48 h (`--horizon`, default 24) | Single split (70/30, then 20% of training for validation), external validation, error analysis, calibration | see [Quick start](#quick-start) |
+| `stratified_main.py` | 6–48 h (`--horizon`, default 6) | 5-fold stratified CV of all models | `stratified_results*_<h>h.txt` |
 | `stratified_main_CI.py` | 12 h | 5-fold CV that saves out-of-fold predictions and computes bootstrap confidence intervals of the differences between models | `res_oof/`, `stratified_results_CI.txt` |
 | `stratified_main_time.py` | 6 h | 5-fold CV that measures training time, inference time and parameter counts | `stratified_training_times.txt`, `stratified_inference_times.txt`, `stratified_parameter_counts.txt` |
 | `ablation_study.py` | 48 h | Ablation of weak anchoring (concept axioms) and of the weighted axiom loss | `ablation_stratified_results.txt` |
@@ -329,3 +335,24 @@ Only source files and inputs are listed. Generated results, checkpoints and figu
 The clinical knowledge graph (`create_ckg.py`, `rules/ckg.txt`) and the rules mined from it
 (`rules/clinical-rule-filtered.csv`) document the risk factors linked to death. The axioms in `knowledge.py` are
 written by hand.
+
+## Citation
+
+If you use this code, please cite:
+
+> F. De Santis, G. Park, F. Zanichelli. Neuro-symbolic artificial intelligence for real-time sepsis mortality
+> prediction. *Engineering Applications of Artificial Intelligence*, 177, 114920.
+
+```bibtex
+@article{DESANTIS2026114920,
+  title     = {Neuro-symbolic artificial intelligence for real-time sepsis mortality prediction},
+  journal   = {Engineering Applications of Artificial Intelligence},
+  volume    = {177},
+  pages     = {114920},
+  year      = {2026},
+  issn      = {0952-1976},
+  doi       = {https://doi.org/10.1016/j.engappai.2026.114920},
+  url       = {https://www.sciencedirect.com/science/article/pii/S0952197626012029},
+  author    = {Fabrizio {De Santis} and Gyunam Park and Francesco Zanichelli},
+}
+```
