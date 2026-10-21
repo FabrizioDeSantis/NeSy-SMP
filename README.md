@@ -1,4 +1,4 @@
-# KGNeSY: knowledge-guided neuro-symbolic mortality prediction in sepsis
+# Neuro-symbolic artificial intelligence for real-time sepsis mortality prediction
 
 KGNeSY predicts in-hospital mortality of ICU patients with sepsis from the events recorded before death or
 discharge. It combines a neural sequence model with clinical knowledge through
