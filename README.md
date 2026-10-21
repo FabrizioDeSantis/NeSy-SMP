@@ -1,4 +1,4 @@
-# Neuro-symbolic artificial intelligence for real-time sepsis mortality prediction
+# KGNeSY: knowledge-guided neuro-symbolic mortality prediction in sepsis
 
 KGNeSY predicts in-hospital mortality of ICU patients with sepsis from the events recorded before death or
 discharge. It combines a neural sequence model with clinical knowledge through
@@ -63,11 +63,6 @@ not distributed with the code. Each user must obtain access and rebuild them.
 
 The models read one event log per horizon `h ∈ {6, 12, 24, 48}`:
 
-| File | Content |
-|---|---|
-| `data/subset/events_<h>h_before_death_gcs.csv` | MIMIC-IV event log: one row per event (`hadm_id`, `time:timestamp`, `concept:name`, vital signs and lab values, GCS, admission data, 23 comorbidity flags, `hospital_expire_flag` label) |
-| `data/subset/eicu_final_sepsis3_dataset_lead_<h>h.csv` | eICU Sepsis-3 cohort with the same columns |
-
 For patients who died, each admission covers a 24-hour observation window that ends `h` hours before death. For
 survivors, the 24-hour window is placed at random during the stay. See `data/extract_before_death.py`.
 
@@ -89,9 +84,8 @@ python main.py --horizon 24
 # 5-fold stratified cross-validation; adds Random Forest, reports mean ± std
 python stratified_main.py --horizon 6
 
-# temporal split with learning curves, all horizons (long run), then the paper figures and tables
-python temporal_train_size.py
-python paper_results_temporal_train_size.py
+# temporal split with learning curves, all horizons (long run)
+python temporal_main.py
 ```
 
 To check that everything runs end to end, use one epoch per model:
@@ -100,7 +94,7 @@ To check that everything runs end to end, use one epoch per model:
 python main.py --num_epochs 1 --num_epochs_nesy 1
 ```
 
-`main.py` and `stratified_main.py` accept the same options (`temporal_train_size.py` has its own, see
+`main.py` and `stratified_main.py` accept the same options (`temporal_main.py` has its own, see
 [Temporal split and learning curves](#temporal-split-and-learning-curves)):
 
 | Option | Default | Meaning |
@@ -252,23 +246,12 @@ python temporal_train_size.py
 python temporal_train_size.py --first_admission
 
 # quick check (a few minutes)
-python temporal_train_size.py --horizons 6 --fractions 0.05 0.1 --n_runs 1 \
+python temporal_main.py --horizons 6 --fractions 0.05 0.1 --n_runs 1 \
     --num_epochs 1 --num_epochs_nesy 1 --num_epochs_nesy_k 1 --max_trees 50 --out_dir smoke_test
-
-# figures and LaTeX tables from both cohorts -> paper_temporal_train_size/
-python paper_results_temporal_train_size.py \
-    --results_dirs results_temporal_train_size results_temporal_train_size_first_admission
 ```
 
-`temporal_train_size.py` writes, for each horizon `h`, `split_<h>h.csv`, `results_<h>h.csv` and
-`summary_<h>h.csv`. `paper_results_temporal_train_size.py` produces:
-
-- learning curves of AUROC and AUPRC against the training fraction;
-- mean ± std tables for each horizon, model and fraction;
-- a paired comparison of NeSy-SMP with each baseline (same subset and seed), with 95% confidence intervals;
-- the comparison between the two cohorts.
-
-`summarize_results.py` prints mean ± std tables directly from `results_<h>h.csv` files.
+`temporal_main.py` writes, for each horizon `h`, `split_<h>h.csv`, `results_<h>h.csv` and
+`summary_<h>h.csv`.
 
 ## Experiments
 
@@ -276,13 +259,9 @@ python paper_results_temporal_train_size.py \
 |---|---|---|---|
 | `main.py` | 6–48 h (`--horizon`, default 24) | Single split (70/30, then 20% of training for validation), external validation, error analysis, calibration | see [Quick start](#quick-start) |
 | `stratified_main.py` | 6–48 h (`--horizon`, default 6) | 5-fold stratified CV of all models | `stratified_results*_<h>h.txt` |
-| `stratified_main_CI.py` | 12 h | 5-fold CV that saves out-of-fold predictions and computes bootstrap confidence intervals of the differences between models | `res_oof/`, `stratified_results_CI.txt` |
-| `stratified_main_time.py` | 6 h | 5-fold CV that measures training time, inference time and parameter counts | `stratified_training_times.txt`, `stratified_inference_times.txt`, `stratified_parameter_counts.txt` |
 | `ablation_study.py` | 48 h | Ablation of weak anchoring (concept axioms) and of the weighted axiom loss | `ablation_stratified_results.txt` |
 | `external_validation.py` | 6 h train, 6–48 h eICU | Bootstrap metrics on eICU at every horizon, calibration curves and Brier scores | `calibration_eicu.pdf` |
-| `temporal_train_size.py` | 6–48 h | Temporal split and learning curves, see [above](#temporal-split-and-learning-curves) | `results_temporal_train_size*/` |
-| `paper_results_temporal_train_size.py` | — | Figures and LaTeX tables from the learning-curve results | `paper_temporal_train_size/` |
-| `summarize_results.py` | — | Mean ± std tables from `results_<h>h.csv` files | terminal, CSV |
+| `temporal_main.py` | 6–48 h | Temporal split and learning curves, see [above](#temporal-split-and-learning-curves) | `results_temporal_train_size*/` |
 
 `main.py` and `stratified_main.py` use the shared modules `knowledge.py` and `training.py`. The other experiment
 scripts still define their own copy of the knowledge base and training loop, so a change to the axioms has to be
@@ -325,10 +304,7 @@ Only source files and inputs are listed. Generated results, checkpoints and figu
 ├── rules/                         # knowledge graph, mined and filtered rules, plot_kc.py
 ├── plot_facts.py                  # plots of predicate truth values and axiom satisfaction
 ├── scores.py, analyze_sofa_apache_scores.py, extract_patients.py
-├── stratified_main_CI.py, stratified_main_time.py, ablation_study.py, external_validation.py
-├── temporal_train_size.py        # temporal split and learning curves (entry point)
-├── paper_results_temporal_train_size.py  # figures and LaTeX tables of the temporal experiment
-├── summarize_results.py          # mean ± std tables of the temporal experiment
+├── temporal_main.py        # temporal split and learning curves (entry point)
 └── README_temporal_train_size.md # full guide to the temporal experiment
 ```
 
